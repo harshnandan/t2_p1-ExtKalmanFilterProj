@@ -11,15 +11,56 @@ Tools::~Tools() {}
 
 VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
                               const vector<VectorXd> &ground_truth) {
-  /**
-  TODO:
-    * Calculate the RMSE here.
-  */
+	//
+	VectorXd rmse(4);
+	rmse << 0, 0, 0, 0;
+
+	if (estimations.size() != ground_truth.size()){
+		cout << "Estimation and groun truth sizes do not match";
+		return rmse;
+	}
+
+	// loop over all time instances
+	int n = ground_truth.size();
+
+	for(int i=0; i<n; i++){
+		VectorXd err = estimations[i] - ground_truth[i];
+		err = err.array() * err.array();
+		rmse += err;
+	}
+	rmse = rmse/n;
+	rmse = rmse.array().sqrt();
+	return rmse;
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-  /**
-  TODO:
-    * Calculate a Jacobian here.
-  */
+	MatrixXd Hj(3,4);
+
+	//recover state parameters
+	float px = x_state(0);
+	float py = x_state(1);
+	float vx = x_state(2);
+	float vy = x_state(3);
+
+	//check division by zero
+	if(px==0 && py==0){
+	    std::cout<<"Error";
+	    Hj<< 0, 0, 0, 0,
+	         0, 0, 0, 0,
+	         0, 0, 0, 0;
+	}else{
+	    float v11 =  px/sqrt(px*px + py*py);
+	    float v12 =  py/sqrt(px*px + py*py);
+	    float v21 = -py/(px*px + py*py);
+	    float v22 =  px/(px*px + py*py);
+	    float v31 =  py*(vx*py - vy*px)/ pow((px*px + py*py), 3/2);
+	    float v32 =  px*(vy*px - vx*py)/ pow((px*px + py*py), 3/2);
+
+	    Hj << v11, v12,   0,   0,
+	          v21, v22,   0,   0,
+	          v31, v32, v11, v12;
+
+	}
+
+	return Hj;
 }
