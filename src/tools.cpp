@@ -16,7 +16,7 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
 	rmse << 0, 0, 0, 0;
 
 	if (estimations.size() != ground_truth.size()){
-		cout << "Estimation and groun truth sizes do not match";
+		cout << "Estimation and ground truth sizes do not match";
 		return rmse;
 	}
 
@@ -43,23 +43,23 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 	float vy = x_state(3);
 
 	//check division by zero
-	if(px==0 && py==0){
-	    std::cout<<"Error";
+    float rho = px*px + py*py;
+	if(fabs(rho)<0.01){
+	    std::cout<<"Error: Division by zero during Jacobian calculation";
 	    Hj<< 0, 0, 0, 0,
 	         0, 0, 0, 0,
 	         0, 0, 0, 0;
 	}else{
-	    float v11 =  px/sqrt(px*px + py*py);
-	    float v12 =  py/sqrt(px*px + py*py);
-	    float v21 = -py/(px*px + py*py);
-	    float v22 =  px/(px*px + py*py);
-	    float v31 =  py*(vx*py - vy*px)/ pow((px*px + py*py), 3/2);
-	    float v32 =  px*(vy*px - vx*py)/ pow((px*px + py*py), 3/2);
+	    float v11 =  px/sqrt(rho);
+	    float v12 =  py/sqrt(rho);
+	    float v21 = -py/rho;
+	    float v22 =  px/rho;
+	    float v31 =  py*(vx*py - vy*px)/ (rho*sqrt(rho));
+	    float v32 =  px*(vy*px - vx*py)/ (rho*sqrt(rho));
 
 	    Hj << v11, v12,   0,   0,
 	          v21, v22,   0,   0,
 	          v31, v32, v11, v12;
-
 	}
 
 	return Hj;
